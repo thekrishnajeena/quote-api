@@ -11,7 +11,7 @@ GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemin
 def home():
     return "<h1>The Quote Fountain is Alive!</h1>"
 
-@app.route("/api/quote", methods=["GET"])
+@app.route("/quote", methods=["GET"])
 def get_quote():
     if not GEMINI_API_KEY:
         return jsonify({"error": "GEMINI_API_KEY is missing"}), 500
