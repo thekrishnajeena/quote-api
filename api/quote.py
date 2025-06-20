@@ -1,10 +1,6 @@
-# api/quote.py
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 import requests
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 
@@ -13,27 +9,29 @@ GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemin
 
 @app.route("/api/quote", methods=["GET"])
 def get_quote():
-    headers = {
-        "Content-Type": "application/json"
-    }
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "API key missing"}), 500
+
     payload = {
         "contents": [{
-            "parts": [{"text": "Give me a unique and thought-provoking quote for today different than yesterday something inspiring, not too mainstream, preferably from literature, philosophy, or great thinkers. Avoid repeating old common ones and don't exceed three lines of mobile width."}]
+            "parts": [{
+                "text": "Give me a unique and thought-provoking quote for today..."
+            }]
         }]
     }
 
-    response = requests.post(
-        f"{GEMINI_ENDPOINT}?key={GEMINI_API_KEY}",
-        headers=headers,
-        json=payload
-    )
-
-    if response.ok:
-        quote = response.json()['candidates'][0]['content']['parts'][0]['text']
+    try:
+        response = requests.post(
+            f"{GEMINI_ENDPOINT}?key={GEMINI_API_KEY}",
+            headers={"Content-Type": "application/json"},
+            json=payload
+        )
+        data = response.json()
+        quote = data['candidates'][0]['content']['parts'][0]['text']
         return jsonify({"quote": quote})
-    else:
-        return jsonify({"error": "Failed to fetch quote"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# Required for Vercel to run Flask in serverless
+# Required for Vercel
 def handler(environ, start_response):
     return app(environ, start_response)
